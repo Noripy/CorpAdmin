@@ -21,9 +21,34 @@ docker compose build app
 ```
 
 ### 2. Laravel 13 を scaffold（このディレクトリに生成）
+
+このフォルダには既に Docker 関連ファイルが置かれているため、
+素の `composer create-project laravel/laravel:^13.0 .` は
+**`Project directory "/var/www/html/." is not empty.` で失敗する**
+（Composer は対象ディレクトリが空でないと create-project を拒否する仕様）。
+
+コンテナ内の一時ディレクトリに scaffold してから、既存の `.gitignore`（Docker/Livewire向けに手を加えたもの）
+を上書きしないよう退避しつつ、現在地にマージする:
+
 ```bash
-docker compose run --rm app \
-  composer create-project laravel/laravel:^13.0 . --no-interaction
+docker compose run --rm app sh -c '
+  set -e
+  TMP=$(mktemp -d)
+  composer create-project laravel/laravel:^13.0 "$TMP" --no-interaction
+  cp .gitignore /tmp/gitignore.bak
+  cp -a "$TMP"/. .
+  cp /tmp/gitignore.bak .gitignore
+  rm -rf "$TMP" /tmp/gitignore.bak
+'
+```
+
+`/tmp` はコンテナ内だけの領域（bind mount されているのは `/var/www/html` のみ）なので、
+一連の処理を **1回のコンテナ実行内で完結させる**必要がある（分割すると `--rm` でコンテナごと消える）。
+
+実行後の確認:
+```bash
+ls -la              # composer.json / app/ / public/ などが生成されているか
+cat .gitignore | head -5   # 自作の.gitignoreが上書きされていないか
 ```
 
 ### 3. Livewire 4 を導入

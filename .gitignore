@@ -21,25 +21,65 @@
 
 # ==== 環境設定・秘匿情報 ====
 .env
-.env.backup
-.env.production
-.env.*.local
+.env.*
+!.env.example
 auth.json
+
+# ローカル証明書・秘密鍵（Docker / HTTPS 開発用に置いた場合）
+*.pem
+*.p12
+*.pfx
+/id_rsa
+/id_rsa.pub
+/id_ed25519
+/id_ed25519.pub
+
+# ==== ローカル DB・ダンプ（個人情報を含む可能性あり） ====
+# database/ 配下は database/.gitignore も参照
+/employee
+/*.sqlite
+/*.sqlite3
+/*.db
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+/dumps/
+/database/dumps/
+*.sql.gz
+*.dump
 
 # ==== Composer / npm ====
 composer.phar
-npm-debug.log
+/vendor-bin/.composer
+npm-debug.log*
 yarn-error.log
+yarn-debug.log*
+pnpm-debug.log*
+.npm
+.yarn/
+.pnp.*
+Homestead.json
+Homestead.yaml
 
 # ==== IDE / OS ====
 .idea
 .vscode
+.fleet
+.cursor
+*.sublime-project
+*.sublime-workspace
 .DS_Store
 Thumbs.db
 *.swp
+*~
+
+# ==== PHP ツールキャッシュ ====
+.php-cs-fixer.cache
+.pint.cache
 
 # ==== テスト・カバレッジ ====
 .phpunit.result.cache
+.phpunit.cache
 /coverage
 
 # ==== Docker 関連（本番イメージ内に持ち込まない一時物） ====
