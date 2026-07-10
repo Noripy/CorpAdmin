@@ -42,7 +42,10 @@ services:
   # ---- データベース（MySQL 8.4 LTS） ----
   db:
     image: mysql:8.4
-    command: --default-authentication-plugin=caching_sha2_password
+    # 注意: --default-authentication-plugin は MySQL 8.4 で削除された起動オプション
+    #（8.0.27で非推奨→8.4.0で除去、authentication_policyに置き換え）。
+    # 指定すると mysqld が起動直後に落ちる。caching_sha2_password は8.4の既定値なので
+    # そもそも指定不要 → command は削除。
     environment:
       MYSQL_DATABASE: employee
       MYSQL_USER: app
