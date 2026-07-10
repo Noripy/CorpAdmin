@@ -1,16 +1,5 @@
 # 社員管理アプリ 環境構築手順（Laravel 13 / Livewire 4 / MySQL 8.4）
 
-## 前提の順序（ここが唯一のハマりどころ）
-
-`runtime` ステージは `composer.json` などアプリ本体を `COPY` する。
-つまり **Laravel をまだ scaffold していない空ディレクトリでは runtime ビルドは通らない**。
-なので順序はこう:
-
-1. Docker 関連ファイル（この一式）を空ディレクトリに置く
-2. **dev コンテナで Laravel を scaffold する**（アプリ本体を生成）
-3. Livewire を入れる
-4. 以後、開発 or 本番ビルド
-
 ---
 
 ## 手順
@@ -51,19 +40,13 @@ ls -la              # composer.json / app/ / public/ などが生成されてい
 cat .gitignore | head -5   # 自作の.gitignoreが上書きされていないか
 ```
 
-ブラウザで確認
-```
-docker compose down
-docker compose up -dS
-```
-
 ### 3. Livewire 4 を導入
 ```bash
 docker compose run --rm app composer require "livewire/livewire:^4.0"
 ```
 
 Livewire 4 は `make:livewire` のデフォルトが **Single-File Components(SFC)**（PHPクラスとBladeを1ファイルに統合、`⚡`プレフィックス）に変わった。
-今回は **class-base（PHP/Bladeを分離する旧来形式）を既定に固定する**。理由：Claude Codeへ「このコンポーネントのバリデーションだけ直して」と依頼する際、クラスファイル単体を渡せた方が差分が的確になり、テスト対象も明確になるため（100画面規模のリプレイスでは特に効く）。
+今回は **class-base（PHP/Bladeを分離する旧来形式）を既定に固定する**。
 
 `config/livewire.php` を公開して既定を変更する:
 ```bash
@@ -127,6 +110,14 @@ Route::livewire('/employees', EmployeeList::class);
 | フロントのHMR | `vite` サービスが自動起動（http://localhost:5173） |
 | DBに直接入る | `docker compose exec db mysql -uapp -psecret employee` |
 | ログ確認 | `docker compose logs -f app` |
+| WEBコンテナ再起動 | `docker compose restart web` |
+
+---
+
+## トラブルシューティング
+
+実際に遭遇したエラーと対処は [`TROUBLESHOOTING.md`](./TROUBLESHOOTING.md) にまとめてある。
+詰まったらまずそちらを検索すること。
 
 ---
 
@@ -152,3 +143,5 @@ docker build --target runtime --build-arg PHP_VERSION=8.5 -t employee-app:prod-8
 - [ ] 適当な Livewire コンポーネントを表示し、`wire:model` の双方向が効く
 - [ ] `make:livewire` で生成されるのが SFC(`⚡`付き1ファイル) ではなく class-base(2ファイル) になっている（config反映確認）
 - [ ] `docker build --target runtime` が単体で通る（本番ビルドの疎通）
+- [ ] `package-lock.json` が `package.json` と同期している（`npm ci` がエラーなく通る）
+- [ ] `curl -v http://localhost:8080/` がリセットされず応答する（IPv6 listen 確認）
