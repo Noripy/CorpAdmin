@@ -51,6 +51,12 @@ ls -la              # composer.json / app/ / public/ などが生成されてい
 cat .gitignore | head -5   # 自作の.gitignoreが上書きされていないか
 ```
 
+ブラウザで確認
+```
+docker compose down
+docker compose up -dS
+```
+
 ### 3. Livewire 4 を導入
 ```bash
 docker compose run --rm app composer require "livewire/livewire:^4.0"
