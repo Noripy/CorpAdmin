@@ -1,0 +1,76 @@
+# 開発用 compose。app(php-fpm) / web(nginx) / db(mysql) / vite(node) の4本立て。
+#
+#   起動:    docker compose up -d
+#   停止:    docker compose down
+#   コンテナ内でartisan: docker compose exec app php artisan migrate
+#
+# 本番相当イメージを検証したいときは compose ではなく直接:
+#   docker build --target runtime -t employee-app:prod .
+
+services:
+  # ---- アプリ本体（PHP-FPM / 開発ステージ） ----
+  app:
+    build:
+      context: .
+      target: dev
+      args:
+        PHP_VERSION: "8.4"     # 8.5 を試すならここを "8.5" に
+        NODE_VERSION: "22"
+    volumes:
+      - .:/var/www/html        # ソースを bind mount → 変更即反映
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_DATABASE: employee
+      DB_USERNAME: app
+      DB_PASSWORD: secret
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ---- Web サーバ（Nginx） ----
+  web:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"              # http://localhost:8080 でアクセス
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+
+  # ---- データベース（MySQL 8.4 LTS） ----
+  db:
+    image: mysql:8.4
+    command: --default-authentication-plugin=caching_sha2_password
+    environment:
+      MYSQL_DATABASE: employee
+      MYSQL_USER: app
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"            # ホストのGUIツールから繋ぎたい場合用
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      # DBが受付可能になるまで app を待たせるためのチェック
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---- フロントエンド開発サーバ（Vite / HMR） ----
+  # 開発中のCSS/JSホットリロード用。本番ビルドは Dockerfile の assets ステージが担当。
+  vite:
+    image: node:22-bookworm-slim
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - app
+
+volumes:
+  db-data:

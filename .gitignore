@@ -1,0 +1,50 @@
+# ==== Laravel 標準 ====
+/vendor
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+!/storage/framework/cache/.gitignore
+!/storage/framework/sessions/.gitignore
+!/storage/framework/testing/.gitignore
+!/storage/framework/views/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+/bootstrap/cache/*.php
+!/bootstrap/cache/.gitignore
+
+# ==== 環境設定・秘匿情報 ====
+.env
+.env.backup
+.env.production
+.env.*.local
+auth.json
+
+# ==== Composer / npm ====
+composer.phar
+npm-debug.log
+yarn-error.log
+
+# ==== IDE / OS ====
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+*.swp
+
+# ==== テスト・カバレッジ ====
+.phpunit.result.cache
+/coverage
+
+# ==== Docker 関連（本番イメージ内に持ち込まない一時物） ====
+docker-compose.override.yml
+
+# ==== Livewire 4: Single-File Component (SFC) は使わない運用だが、
+#      一時検証で ⚡付きファイルを作った場合に紛れ込ませないための保険 ====
+resources/views/components/⚡*.blade.php

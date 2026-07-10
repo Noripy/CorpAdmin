@@ -1,0 +1,25 @@
+# ホスト側の成果物をイメージに持ち込まない（サイズ・再現性・事故防止）
+/vendor
+/node_modules
+/public/build
+/public/hot
+
+# 秘匿情報・VCS・エディタ設定
+/.env
+/.env.*
+/.git
+/.github
+/.idea
+/.vscode
+
+# ログ
+/storage/logs/*.log
+
+# Docker 関連ファイル自体はイメージに不要
+/Dockerfile
+/.dockerignore
+/docker-compose*.yml
+
+# その他
+*.md
+.DS_Store
