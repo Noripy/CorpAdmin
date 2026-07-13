@@ -1,5 +1,18 @@
 # 社員管理アプリ 環境構築手順（Laravel 13 / Livewire 4 / MySQL 8.4）
 
+> 詰まったら先に [`TROUBLESHOOTING.md`](./TROUBLESHOOTING.md) を検索すること。実際に遭遇した罠と対処をまとめてある。
+
+## 前提の順序（ここが唯一のハマりどころ）
+
+`runtime` ステージは `composer.json` などアプリ本体を `COPY` する。
+つまり **Laravel をまだ scaffold していない空ディレクトリでは runtime ビルドは通らない**。
+なので順序はこう:
+
+1. Docker 関連ファイル（この一式）を空ディレクトリに置く
+2. **dev コンテナで Laravel を scaffold する**（アプリ本体を生成）
+3. Livewire を入れる
+4. 以後、開発 or 本番ビルド
+
 ---
 
 ## 手順
@@ -50,7 +63,7 @@ Livewire 4 は `make:livewire` のデフォルトが **Single-File Components(SF
 
 `config/livewire.php` を公開して既定を変更する:
 ```bash
-docker compose run --rm app php artisan livewire:install
+docker compose run --rm app php artisan livewire:publish --config
 ```
 生成された `config/livewire.php` 内の `component_type` を書き換える:
 ```php
@@ -65,15 +78,10 @@ docker compose run --rm app php artisan livewire:layout
 > 個々のコンポーネントだけ一時的にSFCで試したい場合は、config を変えずに
 > `php artisan make:livewire Foo --sfc` のようにコマンド側で指定すれば都度切り替えられる。
 
-### 4. .env を Docker 用に調整
-`.env` の DB 部分を compose のサービスに合わせる:
-```
-DB_CONNECTION=mysql
-DB_HOST=db
-DB_PORT=3306
-DB_DATABASE=employee
-DB_USERNAME=app
-DB_PASSWORD=secret
+### 4. `.env` を用意する（Docker Compose 用の認証情報）
+
+```bash
+cp .env.example .env
 ```
 
 ### 5. 起動 → キー生成 → マイグレーション
@@ -110,7 +118,6 @@ Route::livewire('/employees', EmployeeList::class);
 | フロントのHMR | `vite` サービスが自動起動（http://localhost:5173） |
 | DBに直接入る | `docker compose exec db mysql -uapp -psecret employee` |
 | ログ確認 | `docker compose logs -f app` |
-| WEBコンテナ再起動 | `docker compose restart web` |
 
 ---
 
@@ -136,12 +143,13 @@ docker build --target runtime --build-arg PHP_VERSION=8.5 -t employee-app:prod-8
 
 ## 動作確認チェックリスト（納品前に自分で叩く）
 
+- [ ] `.env.example` を `.env` にコピー済み（無いと `docker compose up` が `:?` エラーで停止する）
 - [ ] `docker compose build app` がエラーなく完走する
 - [ ] `docker compose up -d` 後、`docker compose ps` で db が healthy になる
 - [ ] http://localhost:8080 で Laravel 画面が表示される
 - [ ] `php artisan migrate` が成功する（= app→db 接続が通っている）
 - [ ] 適当な Livewire コンポーネントを表示し、`wire:model` の双方向が効く
 - [ ] `make:livewire` で生成されるのが SFC(`⚡`付き1ファイル) ではなく class-base(2ファイル) になっている（config反映確認）
-- [ ] `docker build --target runtime` が単体で通る（本番ビルドの疎通）
+- [x] `docker build --target runtime` が単体で通る（本番ビルドの疎通）— 2026-07-10 確認済み
 - [ ] `package-lock.json` が `package.json` と同期している（`npm ci` がエラーなく通る）
 - [ ] `curl -v http://localhost:8080/` がリセットされず応答する（IPv6 listen 確認）
