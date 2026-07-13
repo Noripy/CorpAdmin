@@ -62,24 +62,27 @@
          <div class="flex flex-col md:flex-row md:items-center justify-between gap-md">
             <div class="flex flex-wrap items-center gap-sm">
                <div class="group relative">
-                  <button class="flex items-center gap-xs px-md py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-label-md hover:bg-surface-container-low transition-colors">
-                  <span class="material-symbols-outlined text-body-md">filter_alt</span>
-                  部署
-                  <span class="material-symbols-outlined text-body-md">expand_more</span>
-                  </button>
+                  <select wire:model.live="department" class="flex items-center gap-xs px-md py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-label-md hover:bg-surface-container-low transition-colors">
+                     <option value="">部署</option>
+                     @foreach($departments as $d)
+                        <option value="{{ $d }}">{{ $d }}</option>
+                     @endforeach
+                  </select>
                </div>
                <div class="group relative">
-                  <button class="flex items-center gap-xs px-md py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-label-md hover:bg-surface-container-low transition-colors">
-                  役職
-                  <span class="material-symbols-outlined text-body-md">expand_more</span>
-                  </button>
+                  <select wire:model.live="position" class="flex items-center gap-xs px-md py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-label-md hover:bg-surface-container-low transition-colors">
+                     <option value="">役職</option>
+                     @foreach($positions as $p)
+                        <option value="{{ $p }}">{{ $p }}</option>
+                     @endforeach
+                  </select>
                </div>
                <div class="group relative">
                   <button class="flex items-center gap-xs px-md py-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-label-md hover:bg-surface-container-low transition-colors text-on-surface-variant">
                   詳細フィルタ
                   </button>
                </div>
-               <button class="text-primary font-label-md hover:underline px-sm">全てクリア</button>
+               <button wire:click="resetFilters" class="text-primary font-label-md hover:underline px-sm">全てクリア</button>
             </div>
             <button class="flex items-center justify-center gap-sm bg-primary text-on-primary font-label-md px-xl py-3 rounded-lg shadow-md hover:shadow-lg active:scale-[0.98] transition-all">
             <span class="material-symbols-outlined">person_add</span>
@@ -128,7 +131,7 @@
                         </tr>
                      @endforeach
                   </tbody>
-                  
+
                </table>
             </div>
          </div>
