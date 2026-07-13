@@ -11,6 +11,8 @@ class EmployeeControllerTest extends TestCase
 
     public function test_employees_index_returns_successful_response(): void
     {
+        $this->withoutVite();
+
         $response = $this->get('/employees');
 
         $response->assertStatus(200);
