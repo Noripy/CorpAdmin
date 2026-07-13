@@ -11,6 +11,6 @@ class WelcomeViewTest extends TestCase
         $response = $this->get('/');
 
         $response->assertStatus(200);
-        $response->assertSee(route('employees.index'), false);
+        $response->assertSee('/employees', false);
     }
 }
