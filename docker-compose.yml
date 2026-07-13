@@ -6,6 +6,11 @@
 #
 # 本番相当イメージを検証したいときは compose ではなく直接:
 #   docker build --target runtime -t employee-app:prod .
+#
+# 前提: 実行前に .env.example を .env にコピーして値を設定すること。
+#   cp .env.example .env
+# DB認証情報はここに直書きせず .env から注入する（MYSQL_PASSWORD / MYSQL_ROOT_PASSWORD 等）。
+# .env は .gitignore 済み。
 
 services:
   # ---- アプリ本体（PHP-FPM / 開発ステージ） ----
@@ -21,9 +26,9 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: "3306"
-      DB_DATABASE: employee
-      DB_USERNAME: app
-      DB_PASSWORD: secret
+      DB_DATABASE: ${MYSQL_DATABASE}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
@@ -47,17 +52,17 @@ services:
     # 指定すると mysqld が起動直後に落ちる。caching_sha2_password は8.4の既定値なので
     # そもそも指定不要 → command は削除。
     environment:
-      MYSQL_DATABASE: employee
-      MYSQL_USER: app
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?".env に MYSQL_DATABASE が未設定です。.env.example を .env にコピーしてください"}
+      MYSQL_USER: ${MYSQL_USER:?".env に MYSQL_USER が未設定です"}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?".env に MYSQL_PASSWORD が未設定です"}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?".env に MYSQL_ROOT_PASSWORD が未設定です"}
     ports:
       - "3306:3306"            # ホストのGUIツールから繋ぎたい場合用
     volumes:
       - db-data:/var/lib/mysql
     healthcheck:
       # DBが受付可能になるまで app を待たせるためのチェック
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 10
